@@ -1,17 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { getStudentDashboard, getMySubmission } = require('../controllers/studentController');
+const { getStudentDashboard, getMySubmission, getStudentAttendance, getStudentProgress, getStudentAnnouncements } = require('../controllers/studentController');
 
 // 1. Student Dashboard
 // GET /api/student/dashboard
 // This returns courses the student is enrolled in, attendance, assignment statuses, etc.
-router.get(
-  '/dashboard',
-  protect,
-  authorize('student'),
-  getStudentDashboard
-);
+router.get("/dashboard", protect, authorize("student"), getStudentDashboard);
 
 // Let students see their grades for assignment they submitted
 router.get(
@@ -20,6 +15,27 @@ router.get(
     authorize('student'),
     getMySubmission
   );
+
+  router.get(
+    "/courses/:courseId/attendance",
+    protect,
+    authorize("student"),
+    getStudentAttendance
+  );
+
+  router.get(
+    "/progress",
+    protect,
+    authorize("student"),
+    getStudentProgress
+  );
+  
+  router.get(
+    "/announcements", 
+    protect, 
+    authorize("student"), 
+    getStudentAnnouncements
+);
 
 // Export the router
 module.exports = router;

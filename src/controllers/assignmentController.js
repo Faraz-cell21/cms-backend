@@ -67,7 +67,7 @@ exports.submitAssignment = async (req, res) => {
     // 3. Add submission
     assignment.submissions.push({
       student: req.user._id,
-      fileUrl: req.file ? req.file.path : null, // Cloudinary URL from multer
+      fileUrl: req.file?.secure_url || req.file?.path || null, // Cloudinary URL from multer
     });
 
     await assignment.save();
@@ -144,27 +144,33 @@ exports.gradeAssignment = async (req, res) => {
   }
 };
 
-// exports.getMySubmission = async (req, res) => {
-//   try {
-//     const { assignmentId } = req.params;
-//     const assignment = await Assignment.findById(assignmentId);
-//     if (!assignment) {
-//       return res.status(404).json({ message: 'Assignment not found' });
-//     }
+exports.getStudentAssignments = async (req, res) => {
+  try {
+    const studentId = req.user._id;
 
-//     // Find the student's submission
-//     const submissionEntry = assignment.submissions.find(
-//       (sub) => sub.student.toString() === req.user._id.toString()
-//     );
+    // Fetch assignments where the student is enrolled in the course
+    const assignments = await Assignment.find({})
+      .populate('course', 'title')  // Show course title
+      .populate('faculty', 'name'); // Show faculty name
 
-//     if (!submissionEntry) {
-//       return res.status(404).json({ message: 'No submission found for you' });
-//     }
+    if (!assignments.length) {
+      return res.status(404).json({ message: 'No assignments found for you' });
+    }
 
-//     return res.status(200).json(submissionEntry);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// };
+    res.status(200).json(assignments);
+  } catch (error) {
+    console.error("Error fetching student assignments:", error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+exports.getAllAssignments = async (req, res) => {
+  try {
+    const assignments = await Assignment.find().populate('submissions.student', 'name email');
+    res.status(200).json(assignments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 

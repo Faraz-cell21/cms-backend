@@ -6,7 +6,8 @@ const {
   createAssignment,
   submitAssignment,
   getSubmissions,
-  getMySubmission
+  getMySubmission,
+  getStudentAssignments
 } = require('../controllers/assignmentController');
 
 // 1. Staff creates assignment
@@ -34,12 +35,11 @@ router.get(
   getSubmissions
 );
 
-// Let students see their grades for assignment they submitted
-// router.get(
-//   '/:assignmentId/my-submission',
-//   protect,
-//   authorize('student'),
-//   getMySubmission
-// );
+router.get(
+  '/student',
+  protect,
+  authorize('student'),
+  getStudentAssignments
+);
 
 module.exports = router;

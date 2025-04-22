@@ -20,6 +20,9 @@ const UserSchema = new mongoose.Schema({
     enum: ['admin', 'staff', 'faculty', 'student'],
     default: 'student',
   },
+  course: { type: String, enum: ["BSSE", "BSCS"], default: "BSCS" }, // ✅ Course Field
+  session: { type: String, enum: ["20-24", "21-25", "22-26", "23-27", "24-28"], default: "24-28" }, // ✅ Session Field
+  semester: { type: String, enum: ["8th", "6th", "4th", "2nd"], default: "2nd" }, // ✅ Semester Field
 }, { timestamps: true });
 
 // Hash password before save

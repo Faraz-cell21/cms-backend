@@ -3,19 +3,24 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 require('dotenv').config();
 
-// 1. Configure the main cloudinary object
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 2. Create storage engine
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary,
   params: {
-    folder: 'assignments',
-    resource_type: 'auto',
+    folder: "assignments",
+    resource_type: "raw",
+    format: async (req, file) => {
+      return file.mimetype === "application/pdf" ? "pdf" : undefined;
+    },
+    public_id: (req, file) => {
+      const timestamp = Date.now();
+      return `assignment_${timestamp}_${file.originalname}`;
+    },
   },
 });
 

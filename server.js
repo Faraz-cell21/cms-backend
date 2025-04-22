@@ -15,7 +15,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5000',
+  origin: 'http://localhost:3000',
   credentials: true,         
 }));
 app.use(express.json());
@@ -40,5 +40,5 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/student', studentRoutes);
 
 // Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
