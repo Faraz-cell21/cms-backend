@@ -18,15 +18,18 @@ exports.getInstructorDashboard = async (req, res) => {
       const enrolledCount = course.studentsEnrolled.length;
 
       // ✅ Get Attendance Records for Each Student
-      const attendanceRecords = course.studentsEnrolled.map((studentEntry) => ({
-        studentId: studentEntry.student._id,
-        name: studentEntry.student.name,
-        email: studentEntry.student.email,
-        course: studentEntry.student.course,  // ✅ Add Course
-        session: studentEntry.student.session, // ✅ Add Session
-        semester: studentEntry.student.semester, // ✅ Add Semester
-        attendance: studentEntry.attendance, 
-      }));
+      const attendanceRecords = course.studentsEnrolled
+  .filter(entry => entry.student) // ✅ Filter out null students
+  .map((studentEntry) => ({
+    studentId: studentEntry.student._id,
+    name: studentEntry.student.name,
+    email: studentEntry.student.email,
+    course: studentEntry.student.course,
+    session: studentEntry.student.session,
+    semester: studentEntry.student.semester,
+    attendance: studentEntry.attendance,
+  }));
+
 
       // ✅ Fetch Assignments for the Course
       const assignments = await Assignment.find({
@@ -65,7 +68,6 @@ exports.getInstructorDashboard = async (req, res) => {
   }
 };
 
-
 exports.getEnrolledStudents = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -78,7 +80,7 @@ exports.getEnrolledStudents = async (req, res) => {
     }
 
     // Extract the student data
-    const enrolledStudents = course.studentsEnrolled.map((entry) => ({
+    const enrolledStudents = course.studentsEnrolled.filter(entry => entry.student).map((entry) => ({
       studentId: entry.student._id,
       name: entry.student.name,
       email: entry.student.email,

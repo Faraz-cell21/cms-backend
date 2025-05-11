@@ -39,22 +39,62 @@ exports.createAssignment = async (req, res) => {
 };
 
 // 2. Student uploads assignment file to Cloudinary
+// exports.submitAssignment = async (req, res) => {
+//   try {
+//     const { assignmentId } = req.params;
+//     console.log("Cloudinary file info:", req.file);
+
+
+//     // The file is automatically uploaded to Cloudinary by multer
+//     // We can access it via req.file
+//     // e.g. req.file.path -> cloudinary URL
+
+//     // 1. Find the assignment
+//     const assignment = await Assignment.findById(assignmentId).populate('course');
+//     if (!assignment) {
+//       return res.status(404).json({ message: 'Assignment not found' });
+//     }
+
+//     // 2. Check if the student is enrolled in the course
+//     // We can confirm student is in assignment.course.studentsEnrolled
+//     const isEnrolled = assignment.course.studentsEnrolled.some(
+//       (entry) => entry.student.toString() === req.user._id.toString()
+//     );
+//     if (!isEnrolled) {
+//       return res.status(403).json({
+//         message: 'You are not enrolled in this course, cannot submit assignment'
+//       });
+//     }
+
+//     // 3. Add submission
+//     assignment.submissions.push({
+//       student: req.user._id,
+//       fileUrl: req.file?.secure_url || req.file?.path || null, // Cloudinary URL from multer
+//     });
+
+//     await assignment.save();
+
+//     res.status(200).json({
+//       message: 'Assignment submitted successfully',
+//       assignment,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error', error });
+//   }
+// };
 exports.submitAssignment = async (req, res) => {
   try {
     const { assignmentId } = req.params;
+    console.log("Cloudinary file info:", req.file);
 
-    // The file is automatically uploaded to Cloudinary by multer
-    // We can access it via req.file
-    // e.g. req.file.path -> cloudinary URL
-
-    // 1. Find the assignment
+    // 1. Find the assignment with course data
     const assignment = await Assignment.findById(assignmentId).populate('course');
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
     // 2. Check if the student is enrolled in the course
-    // We can confirm student is in assignment.course.studentsEnrolled
     const isEnrolled = assignment.course.studentsEnrolled.some(
       (entry) => entry.student.toString() === req.user._id.toString()
     );
@@ -64,21 +104,35 @@ exports.submitAssignment = async (req, res) => {
       });
     }
 
-    // 3. Add submission
+    // 3. Generate URLs
+    const fileUrl = req.file?.secure_url || req.file?.path || null;
+    const downloadUrl = fileUrl ? 
+      `${fileUrl}?fl_attachment=${encodeURIComponent(req.file.originalname || 'assignment.pdf')}` : 
+      null;
+
+    // 4. Add submission with both URLs
     assignment.submissions.push({
       student: req.user._id,
-      fileUrl: req.file?.secure_url || req.file?.path || null, // Cloudinary URL from multer
+      fileUrl: fileUrl,        // Original URL for preview
+      downloadUrl: downloadUrl, // Forced download URL
+      submittedAt: new Date()
     });
 
     await assignment.save();
 
     res.status(200).json({
       message: 'Assignment submitted successfully',
-      assignment,
+      fileUrl: fileUrl,
+      downloadUrl: downloadUrl,
+      assignment: assignment
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error });
+    console.error('Submission error:', error);
+    res.status(500).json({ 
+      message: 'Server error during submission',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

@@ -11,20 +11,25 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
+  params: (req, file) => ({
     folder: "assignments",
-    resource_type: "raw",
-    format: async (req, file) => {
-      return file.mimetype === "application/pdf" ? "pdf" : undefined;
-    },
-    public_id: (req, file) => {
-      const timestamp = Date.now();
-      return `assignment_${timestamp}_${file.originalname}`;
-    },
-  },
+    resource_type: file.mimetype.startsWith("image/") ? "image" : "raw", // Auto-detect type
+    access_mode: "public", // 👈 Makes ALL uploads public
+    allowed_formats: ["pdf", "docx", "jpg", "png", "gif", "webp"],
+    public_id: `assignment_${Date.now()}_${file.originalname.split('.')[0]}`,
+  }),
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== "application/pdf") {
+      return cb(new Error("Only PDF files are allowed."), false);
+    }
+    cb(null, true);
+  }
+});
+
 
 module.exports = {
   cloudinary,
