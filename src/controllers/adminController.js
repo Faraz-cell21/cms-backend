@@ -223,10 +223,8 @@ exports.updateStudent = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
   }
 
-  // Update name
   if (name) student.name = name;
 
-  // Update password only if newPassword is provided
   if (newPassword) student.password = newPassword; 
 
   await student.save();
@@ -254,10 +252,8 @@ exports.updateStaff = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: 'Staff member not found' });
   }
 
-  // Update name
   if (name) staff.name = name;
 
-  // Update password only if newPassword is provided
   if (newPassword) staff.password = newPassword;
 
   await staff.save();

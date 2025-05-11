@@ -13,8 +13,8 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => ({
     folder: "assignments",
-    resource_type: file.mimetype.startsWith("image/") ? "image" : "raw", // Auto-detect type
-    access_mode: "public", // 👈 Makes ALL uploads public
+    resource_type: file.mimetype.startsWith("image/") ? "image" : "raw",
+    access_mode: "public",
     allowed_formats: ["pdf", "docx", "jpg", "png", "gif", "webp"],
     public_id: `assignment_${Date.now()}_${file.originalname.split('.')[0]}`,
   }),

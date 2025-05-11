@@ -27,7 +27,7 @@ router.post(
   submitAssignment
 );
 
-// 3. Staff (or admin) views submissions
+// 3. Staff views submissions
 router.get(
   '/submissions/:assignmentId',
   protect,

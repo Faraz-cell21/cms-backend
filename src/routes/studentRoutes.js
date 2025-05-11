@@ -5,7 +5,6 @@ const { getStudentDashboard, getMySubmission, getStudentAttendance, getStudentPr
 
 // 1. Student Dashboard
 // GET /api/student/dashboard
-// This returns courses the student is enrolled in, attendance, assignment statuses, etc.
 router.get("/dashboard", protect, authorize("student"), getStudentDashboard);
 
 // Let students see their grades for assignment they submitted

@@ -6,7 +6,7 @@ const SubmissionSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  fileUrl: { type: String },  // Cloudinary file URL
+  fileUrl: { type: String },
   submittedAt: { type: Date, default: Date.now },
   grade: { type: String },
   feedback: { type: String },
@@ -20,13 +20,12 @@ const AssignmentSchema = new mongoose.Schema({
   },
   faculty: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // 'faculty' role
+    ref: 'User',
     required: true,
   },
   title: { type: String, required: true },
   description: { type: String },
   dueDate: { type: Date },
-  // Submissions from students
   submissions: [SubmissionSchema],
 }, { timestamps: true });
 

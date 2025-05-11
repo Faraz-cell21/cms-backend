@@ -1,19 +1,17 @@
 const Course = require('../models/Course');
 const Assignment = require('../models/Assignment');
-const User = require("../models/User"); // ✅ Import User model
+const User = require("../models/User");
 
 
 exports.getStudentDashboard = async (req, res) => {
   try {
     const studentId = req.user._id;
 
-    // Fetch student details (course, session, semester)
     const student = await User.findById(studentId).select("course session semester");
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Fetch courses where student is enrolled
     const courses = await Course.find({ "studentsEnrolled.student": studentId });
 
     let dashboardData = [];
@@ -25,7 +23,6 @@ exports.getStudentDashboard = async (req, res) => {
 
       const attendanceRecords = studentEntry && studentEntry.attendance ? studentEntry.attendance : [];
 
-      // Fetch assignments for this course
       const assignments = await Assignment.find({ course: course._id });
 
       let assignmentSummary = assignments.map((assignment) => {
@@ -42,7 +39,6 @@ exports.getStudentDashboard = async (req, res) => {
         };
       });
 
-      // Push course data
       dashboardData.push({
         courseId: course._id,
         courseTitle: course.title,
@@ -76,7 +72,6 @@ exports.getMySubmission = async (req, res) => {
         return res.status(404).json({ message: 'Assignment not found' });
       }
   
-      // Find the student's submission
       const submissionEntry = assignment.submissions.find(
         (sub) => sub.student.toString() === req.user._id.toString()
       );
@@ -95,7 +90,7 @@ exports.getMySubmission = async (req, res) => {
   exports.getStudentAttendance = async (req, res) => {
     try {
       const { courseId } = req.params;
-      const studentId = req.user._id; // Get logged-in student's ID
+      const studentId = req.user._id;
   
       const course = await Course.findById(courseId).populate("studentsEnrolled.student", "name email");
   
@@ -103,7 +98,6 @@ exports.getMySubmission = async (req, res) => {
         return res.status(404).json({ message: "Course not found" });
       }
   
-      // Find the logged-in student's attendance records
       const studentEntry = course.studentsEnrolled.find(
         (entry) => entry.student._id.toString() === studentId.toString()
       );
@@ -130,7 +124,6 @@ exports.getMySubmission = async (req, res) => {
     try {
         const studentId = req.user._id;
 
-        // Fetch completed assignments and attendance data
         const completedAssignments = await Assignment.countDocuments({
             "submissions.student": studentId,
             "submissions.grade": { $exists: true }
@@ -147,7 +140,6 @@ exports.getMySubmission = async (req, res) => {
 
         attendanceRecords.forEach(course => {
             course.studentsEnrolled.forEach(enrollment => {
-                // Ensure `enrollment.student` exists before accessing properties
                 if (enrollment.student && enrollment.student.toString() === studentId.toString()) {
                     attendedDays += enrollment.attendance
                         ? enrollment.attendance.filter(a => a.status === "present").length
@@ -173,7 +165,7 @@ const Announcement = require("../models/Announcement");
 
 exports.getStudentAnnouncements = async (req, res) => {
     try {
-        const announcements = await Announcement.find().sort({ createdAt: -1 }); // Get latest announcements
+        const announcements = await Announcement.find().sort({ createdAt: -1 });
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error fetching announcements:", error);

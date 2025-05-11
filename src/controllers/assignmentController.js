@@ -1,7 +1,6 @@
 const Assignment = require('../models/Assignment');
 const Course = require('../models/Course');
 
-// 1. Faculty creates assignment
 exports.createAssignment = async (req, res) => {
   try {
     const { courseId, title, description, dueDate } = req.body;
@@ -88,13 +87,11 @@ exports.submitAssignment = async (req, res) => {
     const { assignmentId } = req.params;
     console.log("Cloudinary file info:", req.file);
 
-    // 1. Find the assignment with course data
     const assignment = await Assignment.findById(assignmentId).populate('course');
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    // 2. Check if the student is enrolled in the course
     const isEnrolled = assignment.course.studentsEnrolled.some(
       (entry) => entry.student.toString() === req.user._id.toString()
     );
@@ -104,17 +101,15 @@ exports.submitAssignment = async (req, res) => {
       });
     }
 
-    // 3. Generate URLs
     const fileUrl = req.file?.secure_url || req.file?.path || null;
     const downloadUrl = fileUrl ? 
       `${fileUrl}?fl_attachment=${encodeURIComponent(req.file.originalname || 'assignment.pdf')}` : 
       null;
 
-    // 4. Add submission with both URLs
     assignment.submissions.push({
       student: req.user._id,
-      fileUrl: fileUrl,        // Original URL for preview
-      downloadUrl: downloadUrl, // Forced download URL
+      fileUrl: fileUrl,     
+      downloadUrl: downloadUrl,
       submittedAt: new Date()
     });
 
@@ -136,7 +131,6 @@ exports.submitAssignment = async (req, res) => {
   }
 };
 
-// 3. Optional: faculty can see all submissions
 exports.getSubmissions = async (req, res) => {
   try {
     const { assignmentId } = req.params;
@@ -148,10 +142,6 @@ exports.getSubmissions = async (req, res) => {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    // optionally check if req.user._id is the assignment's faculty
-    // or if user.role === 'admin'
-    // if not, return 403
-
     res.status(200).json(assignment.submissions);
   } catch (error) {
     console.error(error);
@@ -159,38 +149,33 @@ exports.getSubmissions = async (req, res) => {
   }
 };
 
-// Grading Assignment & giving feedback
 exports.gradeAssignment = async (req, res) => {
   try {
     const { assignmentId, submissionId } = req.params;
-    const { grade, feedback } = req.body; // The data the instructor wants to assign
+    const { grade, feedback } = req.body;
 
-    // 1. Find the assignment
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    // 2. Ensure this assignment belongs to the logged-in instructor
     if (assignment.faculty.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to grade this assignment' });
     }
 
-    // 3. Find the specific submission
     const submissionEntry = assignment.submissions.id(submissionId);
     if (!submissionEntry) {
       return res.status(404).json({ message: 'Submission not found' });
     }
 
-    // 4. Update the grade/feedback
-    submissionEntry.grade = grade;       // e.g. 'A+', '85', etc.
-    submissionEntry.feedback = feedback; // e.g. 'Great job!'
+    submissionEntry.grade = grade;
+    submissionEntry.feedback = feedback;
 
     await assignment.save();
 
     return res.status(200).json({
       message: 'Assignment graded successfully',
-      assignment, // or submission: submissionEntry
+      assignment,
     });
   } catch (error) {
     console.error(error);
@@ -202,10 +187,9 @@ exports.getStudentAssignments = async (req, res) => {
   try {
     const studentId = req.user._id;
 
-    // Fetch assignments where the student is enrolled in the course
     const assignments = await Assignment.find({})
-      .populate('course', 'title')  // Show course title
-      .populate('faculty', 'name'); // Show faculty name
+      .populate('course', 'title')
+      .populate('faculty', 'name');
 
     if (!assignments.length) {
       return res.status(404).json({ message: 'No assignments found for you' });

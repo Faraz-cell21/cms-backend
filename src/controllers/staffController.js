@@ -1,12 +1,10 @@
 const Course = require('../models/Course');  // Import the Course model
 const Assignment = require('../models/Assignment');
 
-// Staff Dashboard
 exports.getInstructorDashboard = async (req, res) => {
   try {
     const instructorId = req.user._id;
 
-    // ✅ Fetch courses with populated student details & attendance records
     const courses = await Course.find({ instructor: instructorId }).populate(
       "studentsEnrolled.student",
       "name email course session semester"
@@ -17,9 +15,8 @@ exports.getInstructorDashboard = async (req, res) => {
     for (const course of courses) {
       const enrolledCount = course.studentsEnrolled.length;
 
-      // ✅ Get Attendance Records for Each Student
       const attendanceRecords = course.studentsEnrolled
-  .filter(entry => entry.student) // ✅ Filter out null students
+  .filter(entry => entry.student)
   .map((studentEntry) => ({
     studentId: studentEntry.student._id,
     name: studentEntry.student.name,
@@ -31,7 +28,6 @@ exports.getInstructorDashboard = async (req, res) => {
   }));
 
 
-      // ✅ Fetch Assignments for the Course
       const assignments = await Assignment.find({
         course: course._id,
         faculty: instructorId,
@@ -49,12 +45,11 @@ exports.getInstructorDashboard = async (req, res) => {
         };
       });
 
-      // ✅ Push Course Data to Dashboard Response
       dashboardData.push({
         courseId: course._id,
         courseTitle: course.title,
         startDate: course.startDate,
-        creditHours: course.creditHours, // ✅ Include Credit Hours
+        creditHours: course.creditHours,
         enrolledCount,
         attendanceRecords,
         assignmentSummary,
@@ -72,14 +67,12 @@ exports.getEnrolledStudents = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    // Find the course and populate student details
     const course = await Course.findById(courseId).populate("studentsEnrolled.student", "name email");
 
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // Extract the student data
     const enrolledStudents = course.studentsEnrolled.filter(entry => entry.student).map((entry) => ({
       studentId: entry.student._id,
       name: entry.student.name,
@@ -101,7 +94,7 @@ exports.getCourseDetails = async (req, res) => {
           .populate("instructor", "name email")
           .populate("studentsEnrolled.student", "name email")
           .populate({
-              path: "assignments", // ✅ Now it works
+              path: "assignments",
               select: "title dueDate submissions",
               populate: {
                   path: "submissions.student",
@@ -120,11 +113,11 @@ exports.getCourseDetails = async (req, res) => {
   }
 };
 
-// ✅ Mark Attendance
+
 exports.markAttendance = async (req, res) => {
   try {
     const { courseId, studentId } = req.params;
-    const { date, status } = req.body; // e.g. { date: '2025-02-10', status: 'present' }
+    const { date, status } = req.body;
 
     if (!["present", "absent"].includes(status)) {
       return res.status(400).json({ message: "Invalid attendance status" });
@@ -142,7 +135,6 @@ exports.markAttendance = async (req, res) => {
       return res.status(404).json({ message: "Student not enrolled in this course" });
     }
 
-    // ✅ Check if attendance for this date exists
     const existingAttendance = studentEntry.attendance.find(
       (record) => record.date.toDateString() === new Date(date).toDateString()
     );
@@ -162,7 +154,6 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// Get Attendance
 exports.getAttendance = async (req, res) => {
   try {
     const { courseId, studentId } = req.params;
@@ -210,7 +201,6 @@ exports.getSubmittedAssignments = async (req, res) => {
   try {
     const instructorId = req.user._id;
 
-    // Find assignments related to the staff member
     const assignments = await Assignment.find({ faculty: instructorId })
       .populate("course", "title")
       .populate("submissions.student", "name email");
@@ -219,7 +209,6 @@ exports.getSubmittedAssignments = async (req, res) => {
       return res.status(404).json({ message: "No submitted assignments found." });
     }
 
-    // Format response
     const response = assignments.map((assignment) => ({
       assignmentId: assignment._id,
       title: assignment.title,

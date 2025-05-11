@@ -21,7 +21,7 @@ router.get(
 router.get(
     "/:courseId/students",
     protect,
-    authorize("staff", "admin"), // ✅ Only Staff or Admin can see enrolled students
+    authorize("staff", "admin"), // Only Staff or Admin can see enrolled students
     getEnrolledStudents
   );
 
@@ -32,7 +32,7 @@ router.get(
     getCourseDetails
 );
 
-// ✅ Mark attendance for a student in a course
+// Mark attendance for a student in a course
 router.put(
   "/courses/:courseId/attendance/:studentId",
   protect,
@@ -40,7 +40,7 @@ router.put(
   markAttendance
 );
 
-// ✅ Get attendance records (all students or a specific student)
+// Get attendance records (all students or a specific student)
 router.get(
   "/courses/:courseId/attendance/:studentId?",
   protect,

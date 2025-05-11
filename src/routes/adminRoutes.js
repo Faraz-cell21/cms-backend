@@ -32,7 +32,7 @@ router.get('/students', protect, authorize('admin'), getStudents)
 
 router.get('/assignments', protect, authorize('admin'), getAllAssignments);
 
-// ✅ Route for creating announcements (Admin only)
+// Route for creating announcements (Admin only)
 router.post("/announcements", protect, authorize("admin"), createAnnouncement);
 
 router.get("/announcements", protect, authorize("admin"), getAllAnnouncements);
